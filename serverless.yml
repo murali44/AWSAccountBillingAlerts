@@ -1,0 +1,78 @@
+service:
+  name: AccountBudgetandAlerts
+
+frameworkVersion: '>=1.61.0 <1.62.0'
+
+# Update the custom variables below
+custom:
+  mothly: 100 # Monthly total budget in USD
+  yearly: 1000 # Annual total budget in USD
+  email: email@example.com # Email to send alerts to.
+
+provider:
+  name: aws
+  stage: prod
+  region: us-west-1
+  profile: dev_account
+
+resources:
+  Description: "Set billing/budget alerts for the AWS account."
+  Resources:
+    MonthlyBudget:
+      Type: "AWS::Budgets::Budget"
+      Properties:
+        Budget:
+          BudgetName: Monthly
+          BudgetType: COST
+          TimeUnit: MONTHLY
+          BudgetLimit:
+            Amount: ${self:custom.mothly}
+            Unit: USD
+        NotificationsWithSubscribers:
+          - Notification:
+              NotificationType: ACTUAL
+              ComparisonOperator: GREATER_THAN
+              Threshold: 80 # 1st alert sent when % of Monthly total is spent.
+            Subscribers:
+              - SubscriptionType: EMAIL
+                Address: ${self:custom.email}
+          - Notification:
+              NotificationType: ACTUAL
+              ComparisonOperator: GREATER_THAN
+              Threshold: 95 # 2nd alert sent when % of Monthly total is spent.
+            Subscribers:
+            - SubscriptionType: EMAIL
+              Address: ${self:custom.email}
+    YearlyBudget:
+      Type: "AWS::Budgets::Budget"
+      Properties:
+        Budget:
+          BudgetName: Annual
+          BudgetType: COST
+          TimeUnit: ANNUALLY
+          BudgetLimit:
+            Amount: ${self:custom.yearly}
+            Unit: USD
+        NotificationsWithSubscribers:
+          - Notification:
+              NotificationType: ACTUAL
+              ComparisonOperator: GREATER_THAN
+              Threshold: 80 # 1st alert sent when % of Annual total is spent.
+            Subscribers:
+              - SubscriptionType: EMAIL
+                Address: ${self:custom.email}
+          - Notification:
+              NotificationType: ACTUAL
+              ComparisonOperator: GREATER_THAN
+              Threshold: 95 # 2nd alert sent when % of Annual total is spent.
+            Subscribers:
+            - SubscriptionType: EMAIL
+              Address: ${self:custom.email}
+
+  Outputs:
+    MonthlyBudgetId:
+      Value: 
+        Ref: MonthlyBudget
+    YearlyBudgetId:
+      Value: 
+        Ref: YearlyBudget
