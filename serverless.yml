@@ -1,18 +1,25 @@
 service:
-  name: AccountBudgetandAlerts
+  name: AWSBudgetAlerts
 
 frameworkVersion: '>=1.61.0 <1.62.0'
 
-# Update the custom variables below
+plugins:
+  - serverless-stack-termination-protection
+
 custom:
-  mothly: 100 # Monthly total budget in USD
-  yearly: 1000 # Annual total budget in USD
+  stage: ${opt:stage, self:provider.stage}
+  serverlessTerminationProtection:
+    stages:
+      - prod
+  mothly: 10 # Monthly total budget in USD
+  yearly: 120 # Annual total budget in USD
   email: email@example.com # Email to send alerts to.
 
 provider:
   name: aws
   stage: prod
-  region: us-west-1
+  region: us-east-1
+  stackName: ${self:custom.stage}-${self:service.name}
   profile: dev_account
 
 resources:
